@@ -1,0 +1,10 @@
+let numero1 = 10;
+let numero2 = 2;
+let resultado1 = numero1 + numero2;
+let resultado2 = numero1 - numero2;
+let resultado3 = numero1 * numero2;
+let resultado4 = numero1 / numero2;
+console.log(resultado1);
+console.log(resultado2);
+console.log(resultado3);
+console.log(resultado4);
