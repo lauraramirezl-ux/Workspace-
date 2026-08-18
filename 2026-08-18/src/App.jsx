@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import './App.css';
 
-// Datos iniciales de tareas.
-// Miren con atencion: una de estas tareas es distinta a las demas...
 const tareasIniciales = [
   { id: 1, texto: 'Aprender React', categoria: 'estudio', completada: false },
   { id: 2, texto: 'Hacer ejercicio', categoria: 'salud', completada: true },
@@ -15,7 +13,7 @@ function App() {
   const [filtro, setFiltro] = useState('todas');
   const [contador, setContador] = useState(0);
 
-  // BUG 2: falta el arreglo de dependencias.
+  // BUG 2: useEffect sin arreglo de dependencias.
   useEffect(() => {
     console.log('Renderizando App, contador:', contador);
     setContador(contador + 1);
@@ -23,8 +21,7 @@ function App() {
 
   const tareasFiltradas = tareas.filter((tarea) => {
     if (filtro === 'todas') return true;
-    // BUG 3: se compara un booleano con strings.
-    console.log(typeof tarea.completada, tarea.completada);
+    // BUG 3: se compara un booleano contra un string.
     if (filtro === 'completadas') return tarea.completada === 'true';
     if (filtro === 'pendientes') return tarea.completada === 'false';
     return true;
@@ -33,9 +30,7 @@ function App() {
   function agregarTarea(texto) {
     if (!texto.trim()) return;
     // BUG 4: se muta el arreglo original con push().
-    console.log('tareas antes:', tareas.length);
     tareas.push({ id: Date.now(), texto, categoria: 'general', completada: false });
-    console.log('tareas despues:', tareas.length);
     setTareas(tareas);
   }
 
@@ -49,24 +44,21 @@ function App() {
   return (
     <div className="app">
       <h1>Mis Tareas</h1>
-
       <div className="filtros">
         <button onClick={() => setFiltro('todas')}>Todas</button>
         <button onClick={() => setFiltro('pendientes')}>Pendientes</button>
         <button onClick={() => setFiltro('completadas')}>Completadas</button>
       </div>
-
       <ul className="lista-tareas">
         {tareasFiltradas.map((tarea) => (
           <li key={tarea.id} className={tarea.completada ? 'completada' : ''}>
             <span>{tarea.texto}</span>
-            {/* BUG 1: la tarea con id 4 no tiene categoria. */}
+            {/* BUG 1: tarea.categoria es undefined para la tarea con id 4. */}
             <span className="categoria">{tarea.categoria.toUpperCase()}</span>
-            <button onClick={() => completarTarea(tarea.id)}>✔</button>
+            <button onClick={() => completarTarea(tarea.id)}>OK</button>
           </li>
         ))}
       </ul>
-
       <AgregarTarea onAgregar={agregarTarea} />
       <PerfilUsuario />
     </div>
@@ -84,11 +76,7 @@ function AgregarTarea({ onAgregar }) {
 
   return (
     <form onSubmit={manejarEnvio} className="form-agregar">
-      <input
-        value={texto}
-        onChange={(e) => setTexto(e.target.value)}
-        placeholder="Nueva tarea"
-      />
+      <input value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Nueva tarea" />
       <button type="submit">Agregar</button>
     </form>
   );
@@ -97,25 +85,23 @@ function AgregarTarea({ onAgregar }) {
 function PerfilUsuario() {
   const [usuario, setUsuario] = useState(null);
 
+  useEffect(() => {
+    obtenerUsuario();
+  }, []);
+
   function obtenerUsuario() {
     const exito = Math.random() > 0.5;
-
     setTimeout(() => {
       if (exito) {
         setUsuario({ nombre: 'Estudiante React' });
       } else {
-        // BUG 5: el error async no se atrapa ni se muestra en la interfaz.
+        // BUG 5: se lanza un error async sin atraparlo.
         throw new Error('No se pudo cargar el usuario');
       }
     }, 1000);
   }
 
-  useEffect(() => {
-    obtenerUsuario();
-  }, []);
-
   if (!usuario) return <p className="perfil">Cargando perfil...</p>;
-
   return <p className="perfil">Perfil: {usuario.nombre}</p>;
 }
 
