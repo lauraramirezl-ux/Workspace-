@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Login from './Login.jsx'
+import Productos from './Productos.jsx'
 import { supabase } from './supabaseClient.js'
 import './App.css'
 
@@ -84,6 +85,27 @@ function SessionCard({ session, onLogout, logoutError, isLoggingOut }) {
   )
 }
 
+function AuthenticatedWorkspace({ session, onLogout, logoutError, isLoggingOut }) {
+  return (
+    <div className="workspace-view">
+      <header className="workspace-header">
+        <a className="workspace-brand" href="#inicio" aria-label="Nexo, inicio">
+          <span className="workspace-brand-mark" aria-hidden="true">✦</span>
+          <span>NEXO</span>
+        </a>
+        <div className="workspace-account">
+          <span className="workspace-email">{session.user.email}</span>
+          <button className="workspace-logout" type="button" onClick={onLogout} disabled={isLoggingOut}>
+            {isLoggingOut ? 'Saliendo…' : 'Cerrar sesión'}
+          </button>
+        </div>
+      </header>
+      {logoutError && <p className="form-feedback feedback-error workspace-feedback" role="alert"><span aria-hidden="true">!</span>{logoutError}</p>}
+      <Productos session={session} supabase={supabase} />
+    </div>
+  )
+}
+
 function App() {
   const [session, setSession] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -129,6 +151,19 @@ function App() {
     setIsLoggingOut(false)
   }
 
+  if (supabase && !isLoading && session) {
+    return (
+      <main className="workspace-shell" id="inicio">
+        <AuthenticatedWorkspace
+          session={session}
+          onLogout={handleLogout}
+          logoutError={logoutError}
+          isLoggingOut={isLoggingOut}
+        />
+      </main>
+    )
+  }
+
   return (
     <main className="app-shell" id="inicio">
       <BrandPanel />
@@ -146,13 +181,6 @@ function App() {
               <span className="spinner spinner-dark" aria-hidden="true" />
               <span>Revisando tu sesión…</span>
             </div>
-          ) : session ? (
-            <SessionCard
-              session={session}
-              onLogout={handleLogout}
-              logoutError={logoutError}
-              isLoggingOut={isLoggingOut}
-            />
           ) : (
             <Login onLogin={setSession} supabase={supabase} />
           )}
